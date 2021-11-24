@@ -26,7 +26,7 @@ while True:
                 or jsonSystem["ISR"][1]["ContactorOn"][0] \
                 or jsonSystem["ISR"][1]["ContactorOn"][0]
         if   isHeatingActivated:      
-            with open('logger.csv', 'a', newline='') as f_object:  
+            with open('logs/logger.csv', 'a', newline='') as f_object:  
                 # Pass the CSV  file object to the writer() function
                 writer_object = writer(f_object)
                 # Result - a writer object

@@ -1,1 +1,2 @@
-logger.csv
+# ignore all csv
+*.csv
