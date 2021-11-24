@@ -12,8 +12,7 @@ while True:
         tLoggerStart = time.perf_counter()
         tLoggerCurrent = time.perf_counter()
         time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) 
-        # The data assigned to the list 
-        list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),'03','Smith','Science']
+
         
         # Pre-requisite - The CSV file should be manually closed before running this code.
 
@@ -25,6 +24,12 @@ while True:
         isHeatingActivated =    jsonSystem["ISR"][1]["ContactorOn"][0] \
                 or jsonSystem["ISR"][1]["ContactorOn"][0] \
                 or jsonSystem["ISR"][1]["ContactorOn"][0]
+
+        # The data assigned to the list 
+        list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),jsonSystem["Lufttemperatur"]\
+                  ,jsonSystem["Windgeschwindigkeit"],jsonSystem["Niederschlagsmenge"]\
+                  ,jsonSystem["Niederschlagsart"],jsonSystem["UV-Index"]]
+
         if   isHeatingActivated:      
             with open('logs/logger.csv', 'a', newline='') as f_object:  
                 # Pass the CSV  file object to the writer() function

@@ -7,9 +7,9 @@ from csv import writer
 import logging
 
 #/////////////Debugging Modbus Tool//////////////////
-#logging.basicConfig()
-#log = logging.getLogger()
-#log.setLevel(logging.DEBUG)
+# logging.basicConfig()
+# log = logging.getLogger()
+# log.setLevel(logging.DEBUG)
 #/////////////////////////////////////////////////////
 
 #/////////////Parameter///////////////////////////////
@@ -20,7 +20,7 @@ isReadingTRSEnable = True
 isReadingGatewayEnable = True
 isReadingISR1 = False
 isReadingISR2 = True
-dataLoggerEnable = True
+isDataLoggerEnabled = True
 client = ModbusSerialClient(
     method='rtu',
     #port='/dev/ttyS0',
@@ -104,20 +104,24 @@ def writetoJSON(strFileName):
 def readModbusFromWD():
     #Air Temperature
     print(readInputModbusResgister(70, 19, 10))
+    jsonSystem["Lufttemperatur"]= readInputModbusResgister(70, 19, 10)
     #Wind velocity
     print(readInputModbusResgister(70, 45, 1))
+    jsonSystem["Windgeschwindigkeit"]= readInputModbusResgister(70, 45, 1)
     #Amount of precipitation
     print(readInputModbusResgister(70, 59, 1))
-
+    jsonSystem["Niederschlagsmenge"]= readInputModbusResgister(70, 59, 1)
     #Niederschlagsart
     #0 = kein Niederschlag
     #60 = flüssiger Niederschlag, z.B. Regen
     #70 = fester Niederschlag, z.B. Schnee
     #90: Hagel
     print(readInputModbusResgister(70, 121, 1))
+    jsonSystem["Niederschlagsart"]= readInputModbusResgister(70, 121, 1)
 
     #UV-Index
     print(readInputModbusResgister(70, 134, 1))
+    jsonSystem["UV-Index"]= readInputModbusResgister(70, 134, 1)
 
 
 def readModbusFromTRD():
@@ -139,28 +143,6 @@ def readModbusFromGateway():
     jsonSystem["SignalForRegulate"] = readModbusResgister(62, 282, 1)
     #print(jsonSystem["SignalForRegulate"])
     jsonSystem["ISR"][1]["ISRRailTemp"] = readModbusResgister(62, 346, 10)
-    #print(jsonSystem["ISR"][1]["ISRRailTemp"])
-    #print("Rail Temperature")
-    #print(jsonSystem["ISR"][1]["ISRRailTemp"])
-    # #HeatingCurrent ISR 1
-    # jsonSystem["ISR"][0]["HeatingCurrent"][0] = readModbusResgister(62, 45, 100)
-    # jsonSystem["ISR"][0]["HeatingCurrent"][1] = readModbusResgister(62, 46, 100)
-    # jsonSystem["ISR"][0]["HeatingCurrent"][2] = readModbusResgister(62, 47, 100)
-
-
-    # print("Betrieb Modus")
-    # print(jsonSystem["SignalForRegulate"]) 
-    # print(jsonSystem["ISR"][1]["ISRRailTemp"]) 
-
-    # #EnergyConsumptionkWh ISR 1
-    # jsonSystem["ISR"][0]["EnergyConsumptionkWh"][0] = readModbusResgister(62, 21, 1)
-    # jsonSystem["ISR"][0]["EnergyConsumptionkWh"][1] = readModbusResgister(62, 23, 1)
-    # jsonSystem["ISR"][0]["EnergyConsumptionkWh"][2] = readModbusResgister(62, 25, 1)
-    
-    #EnergyConsumptionkWh ISR 2
-    # jsonSystem["ISR"][1]["EnergyConsumptionkWh"][0] = readModbusResgister(62, 307, 1)
-    # jsonSystem["ISR"][1]["EnergyConsumptionkWh"][1] = readModbusResgister(62, 309, 1)
-    # jsonSystem["ISR"][1]["EnergyConsumptionkWh"][2] = readModbusResgister(62, 311, 1)
     if isReadingISR1:
         #ContactorOn ISR 1
         jsonSystem["ISR"][0]["ContactorOn"][0] = readModbusResgister(62, 80, 1)
@@ -188,17 +170,6 @@ def readModbusFromGateway():
         jsonSystem["ISR"][1]["HeatingCurrent"][2] = readModbusResgister(62, 333, 100)
         #print(jsonSystem["ISR"][1]["HeatingCurrent"][2])
 
-    # #HeatingOn ISR 1
-    # jsonSystem["ISR"][0]["HeatingOn"][0] = readModbusResgister(62, 83, 1)
-    # jsonSystem["ISR"][0]["HeatingOn"][1] = readModbusResgister(62, 84, 1)
-    # jsonSystem["ISR"][0]["HeatingOn"][2] = readModbusResgister(62, 85, 1)
-    # #HeatingOn ISR 2
-    # jsonSystem["ISR"][1]["HeatingOn"][0] = readModbusResgister(62, 369, 1)
-    # jsonSystem["ISR"][1]["HeatingOn"][1] = readModbusResgister(62, 370, 1)
-    # jsonSystem["ISR"][1]["HeatingOn"][2] = readModbusResgister(62, 371, 1)
-
-
-
 while True:
     if isReadingGatewayEnable:
         readModbusFromGateway()
@@ -212,7 +183,10 @@ while True:
     #print("HeartBeat: " + str(heartBeat))
     if heartBeat == 10:
          heartBeat = 0
-    
+
+    if isDataLoggerEnabled:
+        time.sleep(0.5)
+        readModbusFromWD()
     if isInterrupModbusEnable:
         #print(f"Modbus readed in {tModbus_current - tModbus_start:0.4f} seconds")
         tModbus_current = time.perf_counter()
@@ -221,30 +195,3 @@ while True:
             time.sleep(120)
             tModbus_start = time.perf_counter()
             tModbus_current = time.perf_counter()
-
-
-    # if dataLoggerEnable:
-    #     readModbusFromWD()
-    #     isHeatingActivated =    jsonSystem["ISR"][1]["ContactorOn"][0] \
-    #                         or jsonSystem["ISR"][1]["ContactorOn"][0] \
-    #                         or jsonSystem["ISR"][1]["ContactorOn"][0]
-    #     if isHeatingActivated:
-    #         tLoggerCurrent = time.perf_counter()
-    #         if tLoggerCurrent-tLoggerStart > 1:
-    #             tLoggerStart = time.perf_counter()
-    #             tLoggerCurrent = time.perf_counter()
-    #             # The data assigned to the list 
-    #             list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),'03','Smith','Science']
-                
-    #             # Pre-requisite - The CSV file should be manually closed before running this code.
-
-    #             # First, open the old CSV file in append mode, hence mentioned as 'a'
-    #             # Then, for the CSV file, create a file object
-    #             with open('logger.csv', 'a', newline='') as f_object:  
-    #                 # Pass the CSV  file object to the writer() function
-    #                 writer_object = writer(f_object)
-    #                 # Result - a writer object
-    #                 # Pass the data in the list as an argument into the writerow() function
-    #                 writer_object.writerow(list_data)  
-    #                 # Close the file object
-    #                 f_object.close()
