@@ -102,22 +102,26 @@ def writetoJSON(strFileName):
         json.dump(jsonObject, file, indent=4, sort_keys=True)
 
 def readModbusFromWD():
+    time.sleep(modbusReqTime)
     #Air Temperature
     print(readInputModbusResgister(70, 19, 10))
     jsonSystem["Lufttemperatur"]= readInputModbusResgister(70, 19, 10)
+    #Relativ Humidity
+    print(readInputModbusResgister(70, 29, 10))
+    jsonSystem["RelativeFeucht"]= readInputModbusResgister(70, 29, 10)
     #Wind velocity
-    print(readInputModbusResgister(70, 45, 1))
-    jsonSystem["Windgeschwindigkeit"]= readInputModbusResgister(70, 45, 1)
+    print(readInputModbusResgister(70, 45, 10))
+    jsonSystem["Windgeschwindigkeit"]= readInputModbusResgister(70, 49, 10)
     #Amount of precipitation
     print(readInputModbusResgister(70, 59, 1))
-    jsonSystem["Niederschlagsmenge"]= readInputModbusResgister(70, 59, 1)
+    jsonSystem["Niederschlagsmenge"]= readInputModbusResgister(70, 59, 100)
     #Niederschlagsart
     #0 = kein Niederschlag
     #60 = flüssiger Niederschlag, z.B. Regen
     #70 = fester Niederschlag, z.B. Schnee
     #90: Hagel
     print(readInputModbusResgister(70, 121, 1))
-    jsonSystem["Niederschlagsart"]= readInputModbusResgister(70, 121, 1)
+    jsonSystem["Niederschlagsart"]= readInputModbusResgister(70, 61, 1)
 
     #UV-Index
     print(readInputModbusResgister(70, 134, 1))
@@ -185,7 +189,6 @@ while True:
          heartBeat = 0
 
     if isDataLoggerEnabled:
-        time.sleep(0.5)
         readModbusFromWD()
     if isInterrupModbusEnable:
         #print(f"Modbus readed in {tModbus_current - tModbus_start:0.4f} seconds")

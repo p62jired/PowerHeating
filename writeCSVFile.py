@@ -27,6 +27,7 @@ while True:
 
         # The data assigned to the list 
         list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),jsonSystem["Lufttemperatur"]\
+                  ,jsonSystem["RelativeFeucht"]\
                   ,jsonSystem["Windgeschwindigkeit"],jsonSystem["Niederschlagsmenge"]\
                   ,jsonSystem["Niederschlagsart"],jsonSystem["UV-Index"]]
 
