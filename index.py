@@ -3,7 +3,6 @@ from pymodbus.client.sync import ModbusSerialClient
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.constants import Endian
 import json
-from csv import writer
 import logging
 
 #/////////////Debugging Modbus Tool//////////////////
@@ -47,8 +46,13 @@ with open(jsonFilePath) as jsonFile:
 
 # Return value of trying to connect to Modbus Server/Slave
 def isModbusConnection():
-    return client.connect()
-
+    try:
+        return client.connect()
+    except:
+        print("Not connection")
+        client.close()
+    return -1
+    
 # Return JSON object from a holding register with the below content
 def readModbusResgister(slaveNr, registerAdrrs, decoderVal):
     time.sleep(modbusReqTime)
@@ -104,27 +108,27 @@ def writetoJSON(strFileName):
 def readModbusFromWD():
     time.sleep(modbusReqTime)
     #Air Temperature
-    print(readInputModbusResgister(70, 19, 10))
+    #print(readInputModbusResgister(70, 19, 10))
     jsonSystem["Lufttemperatur"]= readInputModbusResgister(70, 19, 10)
     #Relativ Humidity
-    print(readInputModbusResgister(70, 29, 10))
+    #print(readInputModbusResgister(70, 29, 10))
     jsonSystem["RelativeFeucht"]= readInputModbusResgister(70, 29, 10)
     #Wind velocity
-    print(readInputModbusResgister(70, 45, 10))
+    #print(readInputModbusResgister(70, 45, 10))
     jsonSystem["Windgeschwindigkeit"]= readInputModbusResgister(70, 49, 10)
     #Amount of precipitation
-    print(readInputModbusResgister(70, 59, 1))
+    #print(readInputModbusResgister(70, 59, 1))
     jsonSystem["Niederschlagsmenge"]= readInputModbusResgister(70, 59, 100)
     #Niederschlagsart
     #0 = kein Niederschlag
     #60 = flüssiger Niederschlag, z.B. Regen
     #70 = fester Niederschlag, z.B. Schnee
     #90: Hagel
-    print(readInputModbusResgister(70, 121, 1))
+    #print(readInputModbusResgister(70, 121, 1))
     jsonSystem["Niederschlagsart"]= readInputModbusResgister(70, 61, 1)
 
     #UV-Index
-    print(readInputModbusResgister(70, 134, 1))
+    #print(readInputModbusResgister(70, 134, 1))
     jsonSystem["UV-Index"]= readInputModbusResgister(70, 134, 1)
 
 
@@ -145,7 +149,7 @@ def readModbusFromGateway():
     jsonSystem["SFSRailTemp"] = readModbusResgister(62, 64, 10)
     #print(jsonSystem["SFSRailTemp"])
     jsonSystem["SignalForRegulate"] = readModbusResgister(62, 282, 1)
-    #print(jsonSystem["SignalForRegulate"])
+    print(jsonSystem["SignalForRegulate"])
     jsonSystem["ISR"][1]["ISRRailTemp"] = readModbusResgister(62, 346, 10)
     if isReadingISR1:
         #ContactorOn ISR 1
