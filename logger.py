@@ -3,7 +3,6 @@ from csv import writer
 import time
 import json
 jsonFilePath = "/var/lib/docker/volumes/iot-stack-tutorial_noderedData/_data/bind.json"
-
 tLoggerStart = time.perf_counter()
 #Load JSON struct from JSON file into global variable
 while True:
