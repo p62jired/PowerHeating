@@ -74,4 +74,4 @@ while True:
     except socket.timeout:
         print("timeout from " + serverAddressPort[0]+ "!!")
 
-    time.sleep(2)
+    time.sleep(4)
