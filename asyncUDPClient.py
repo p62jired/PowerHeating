@@ -1,8 +1,8 @@
-
 import socket
 import time
 import json
 import asyncio
+import threading
 
 filePath = "html/logger.json"
 msgFromClient       = "1"
@@ -12,6 +12,10 @@ errorTempList = ["n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/
 "n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a",]
 sensorError = 1372.0
 
+server_1_AddressPort = ("192.168.0.100", 2001)
+server_2_AddressPort = ("192.168.0.101", 2001)
+server_3_AddressPort = ("192.168.0.102", 2001)
+server_4_AddressPort = ("192.168.0.103", 2001)
 # Create a UDP socket at client side
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM) 
 UDPClientSocket.settimeout(0.5)
@@ -41,9 +45,7 @@ def listOfTempsToJSONFile(index, JSONFromFile, listOfTemps):
         JSONFromFile[str(index)][i] = listOfTemps[i]
     return JSONFromFile
 
-
-async def logger1():
-    serverAddressPort   = ("192.168.0.100", 2001)
+async def logger1(serverAddressPort):
     index = 1
     try:
         UDPClientSocket.sendto(bytesToSend, serverAddressPort)
@@ -58,8 +60,7 @@ async def logger1():
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
 
-async def logger2():
-    serverAddressPort   = ("192.168.0.101", 2001)
+async def logger2(serverAddressPort):
     index = 2
     try:
         UDPClientSocket.sendto(bytesToSend, serverAddressPort)
@@ -74,8 +75,7 @@ async def logger2():
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
 
-async def logger3():
-    serverAddressPort   = ("192.168.0.102", 2001)
+async def logger3(serverAddressPort):
     index = 3
     try:
         UDPClientSocket.sendto(bytesToSend, serverAddressPort)
@@ -90,8 +90,7 @@ async def logger3():
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
 
-async def logger4():
-    serverAddressPort   = ("192.168.0.103", 2001)
+async def logger4(serverAddressPort):
     index = 4
     try:
         UDPClientSocket.sendto(bytesToSend, serverAddressPort)
@@ -106,78 +105,57 @@ async def logger4():
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")        
 
-def logger(index, addrPort):
-    serverAddressPort   = ("192.168.0.101", 2001)
-    try:
-        UDPClientSocket.sendto(bytesToSend, addrPort)
-        msgFromServer = UDPClientSocket.recvfrom(bufferSize)
-        data = msgFromServer[0] 
-        listOfTemps = wordListToTempList(bytesListToWordsList(data))
-        print(listOfTemps)
-        dataToWritte = listOfTempsToJSONFile(index, dataFromFile, listOfTemps)
-        writeJSONFile(filePath, dataToWritte)
-    except socket.timeout:
-        dataToWritte = listOfTempsToJSONFile(index, dataFromFile, errorTempList)
-        writeJSONFile(filePath, dataToWritte)
-        print("timeout from " + serverAddressPort[0]+ "!!")
-
-
-#//////Modus to CSv ******test**********************************************
-#////////////////////////////////////////////////////////////////////////////
-# Pre-requisite - Import the writer class from the csv module
 from csv import writer
 import time
-loggerIntervalInSec = 5
+loggerIntervalInSec = 10
 jsonFilePath = "/var/lib/docker/volumes/iot-stack-tutorial_noderedData/_data/bind.json"
-tStart = time.perf_counter()
-print(tStart)
+
+def looper1():    
+    # i as interval in seconds    
+    threading.Timer(2, looper1).start()    
+    # put your action here
+    print("en looper 1")
+    asyncio.run(logger1(server_1_AddressPort))
+    asyncio.run(logger2(server_2_AddressPort))
+    asyncio.run(logger3(server_3_AddressPort))
+    asyncio.run(logger4(server_4_AddressPort))
+
+def looper2():    
+    # i as interval in seconds    
+    threading.Timer(10, looper2).start()    
+    # put your action here
+    print("en looper 2")
+    logInToCSV(jsonFilePath)
+
 #Load JSON struct from JSON file into global variable
-async def new_func(jsonFilePath, tLoggerStart):
-    tLoggerCurrent = time.perf_counter()
-    if tLoggerCurrent-tLoggerStart > loggerIntervalInSec:
-        tLoggerStart = time.perf_counter()
-        tLoggerCurrent = time.perf_counter()
-        time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) 
-        print("llegamos!!!!")
-        
-        # Pre-requisite - The CSV file should be manually closed before running this code.
+def logInToCSV(jsonFilePath):
+    try:
+        with open(jsonFilePath) as jsonFile:
+            jsonSystem = json.load(jsonFile)
+            jsonFile.close()
+    except Exception as error: 
+        print('oops')
+    isHeatingActivated =    jsonSystem["ISR"][1]["ContactorOn"][0] \
+            or jsonSystem["ISR"][1]["ContactorOn"][0] \
+            or jsonSystem["ISR"][1]["ContactorOn"][0]
 
-        # First, open the old CSV file in append mode, hence mentioned as 'a'
-        # Then, for the CSV file, create a file object
-        try:
-            print(jsonFilePath)
-            with open(jsonFilePath) as jsonFile:
-                jsonSystem = json.load(jsonFile)
-                jsonFile.close()
-        except Exception as error: 
-            print('oops')
-        isHeatingActivated =    jsonSystem["ISR"][1]["ContactorOn"][0] \
-                or jsonSystem["ISR"][1]["ContactorOn"][0] \
-                or jsonSystem["ISR"][1]["ContactorOn"][0]
+    # The data assigned to the list 
+    list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),jsonSystem["Lufttemperatur"]\
+                ,jsonSystem["RelativeFeucht"]\
+                ,jsonSystem["Windgeschwindigkeit"],jsonSystem["Niederschlagsmenge"]\
+                ,jsonSystem["Niederschlagsart"],jsonSystem["UV-Index"]]
 
-        # The data assigned to the list 
-        list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),jsonSystem["Lufttemperatur"]\
-                  ,jsonSystem["RelativeFeucht"]\
-                  ,jsonSystem["Windgeschwindigkeit"],jsonSystem["Niederschlagsmenge"]\
-                  ,jsonSystem["Niederschlagsart"],jsonSystem["UV-Index"]]
-
-        if   isHeatingActivated:      
-            with open('logs/logger.csv', 'a', newline='') as f_object:  
-                # Pass the CSV  file object to the writer() function
-                writer_object = writer(f_object)
-                # Result - a writer object
-                # Pass the data in the list as an argument into the writerow() function
-                writer_object.writerow(list_data)  
-                # Close the file object
-                f_object.close()
+    if   isHeatingActivated:      
+        with open('logs/logger.csv', 'a', newline='') as f_object:  
+            # Pass the CSV  file object to the writer() function
+            writer_object = writer(f_object)
+            # Result - a writer object
+            # Pass the data in the list as an argument into the writerow() function
+            writer_object.writerow(list_data)  
+            # Close the file object
+            f_object.close()
 
 
-#////////////////////////////////////////////////////////////////////////////
-#//////Modus to CSv ******test**********************************************
-while True:
-    asyncio.run(logger1())
-    asyncio.run(logger2())
-    asyncio.run(logger3())
-    asyncio.run(logger4())
-    asyncio.run(new_func(jsonFilePath, tStart))
-
+looper1()
+looper2()
+    
