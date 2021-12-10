@@ -106,7 +106,7 @@ async def logger4():
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")        
 
-async def logger(index, addrPort):
+def logger(index, addrPort):
     serverAddressPort   = ("192.168.0.101", 2001)
     try:
         UDPClientSocket.sendto(bytesToSend, addrPort)
@@ -120,11 +120,64 @@ async def logger(index, addrPort):
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, errorTempList)
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
-       
+
+
+#//////Modus to CSv ******test**********************************************
+#////////////////////////////////////////////////////////////////////////////
+# Pre-requisite - Import the writer class from the csv module
+from csv import writer
+import time
+loggerIntervalInSec = 5
+jsonFilePath = "/var/lib/docker/volumes/iot-stack-tutorial_noderedData/_data/bind.json"
+tStart = time.perf_counter()
+print(tStart)
+#Load JSON struct from JSON file into global variable
+async def new_func(jsonFilePath, tLoggerStart):
+    tLoggerCurrent = time.perf_counter()
+    if tLoggerCurrent-tLoggerStart > loggerIntervalInSec:
+        tLoggerStart = time.perf_counter()
+        tLoggerCurrent = time.perf_counter()
+        time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) 
+        print("llegamos!!!!")
+        
+        # Pre-requisite - The CSV file should be manually closed before running this code.
+
+        # First, open the old CSV file in append mode, hence mentioned as 'a'
+        # Then, for the CSV file, create a file object
+        try:
+            print(jsonFilePath)
+            with open(jsonFilePath) as jsonFile:
+                jsonSystem = json.load(jsonFile)
+                jsonFile.close()
+        except Exception as error: 
+            print('oops')
+        isHeatingActivated =    jsonSystem["ISR"][1]["ContactorOn"][0] \
+                or jsonSystem["ISR"][1]["ContactorOn"][0] \
+                or jsonSystem["ISR"][1]["ContactorOn"][0]
+
+        # The data assigned to the list 
+        list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),jsonSystem["Lufttemperatur"]\
+                  ,jsonSystem["RelativeFeucht"]\
+                  ,jsonSystem["Windgeschwindigkeit"],jsonSystem["Niederschlagsmenge"]\
+                  ,jsonSystem["Niederschlagsart"],jsonSystem["UV-Index"]]
+
+        if   isHeatingActivated:      
+            with open('logs/logger.csv', 'a', newline='') as f_object:  
+                # Pass the CSV  file object to the writer() function
+                writer_object = writer(f_object)
+                # Result - a writer object
+                # Pass the data in the list as an argument into the writerow() function
+                writer_object.writerow(list_data)  
+                # Close the file object
+                f_object.close()
+
+
+#////////////////////////////////////////////////////////////////////////////
+#//////Modus to CSv ******test**********************************************
 while True:
     asyncio.run(logger1())
     asyncio.run(logger2())
     asyncio.run(logger3())
     asyncio.run(logger4())
-    time.sleep(2)
+    asyncio.run(new_func(jsonFilePath, tStart))
 
