@@ -3,8 +3,9 @@ import time
 import json
 import asyncio
 import threading
+from csv import writer
 
-filePath = "html/logger.json"
+filePath = "/home/pi/project/html/logger.json"
 msgFromClient       = "1"
 bytesToSend         = str.encode(msgFromClient)
 bufferSize          = 1024
@@ -16,10 +17,20 @@ server_1_AddressPort = ("192.168.0.100", 2001)
 server_2_AddressPort = ("192.168.0.101", 2001)
 server_3_AddressPort = ("192.168.0.102", 2001)
 server_4_AddressPort = ("192.168.0.103", 2001)
+
+
+loggerIntervalInSec = 10
+jsonFilePath = "/var/lib/docker/volumes/iot-stack-tutorial_noderedData/_data/bind.json"
+
+
 # Create a UDP socket at client side
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM) 
 UDPClientSocket.settimeout(0.5)
-dataFromFile = json.load(open(filePath, 'r'))
+# dataFromFile = json.load(open(filePath, 'r'))
+# print(type(dataFromFile))  
+with open(filePath, 'r') as f:
+    dataFromFile = json.load(f)
+    print(dataFromFile)
 
 def writeJSONFile(path, data):
     with open(path, 'w') as file:
@@ -105,16 +116,13 @@ async def logger4(serverAddressPort):
         writeJSONFile(filePath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")        
 
-from csv import writer
-import time
-loggerIntervalInSec = 10
-jsonFilePath = "/var/lib/docker/volumes/iot-stack-tutorial_noderedData/_data/bind.json"
+
 
 def looper1():    
     # i as interval in seconds    
     threading.Timer(2, looper1).start()    
     # put your action here
-    print("en looper 1")
+    print("in looper 1")
     asyncio.run(logger1(server_1_AddressPort))
     asyncio.run(logger2(server_2_AddressPort))
     asyncio.run(logger3(server_3_AddressPort))
@@ -122,19 +130,17 @@ def looper1():
 
 def looper2():    
     # i as interval in seconds    
-    threading.Timer(10, looper2).start()    
+    threading.Timer(loggerIntervalInSec, looper2).start()    
     # put your action here
-    print("en looper 2")
-    logInToCSV(jsonFilePath)
+    print("in looper 2")
+    asyncio.run(logInToCSV(jsonFilePath))
 
 #Load JSON struct from JSON file into global variable
-def logInToCSV(jsonFilePath):
-    try:
-        with open(jsonFilePath) as jsonFile:
-            jsonSystem = json.load(jsonFile)
-            jsonFile.close()
-    except Exception as error: 
-        print('oops')
+async def logInToCSV(jsonFilePath):
+
+    with open(jsonFilePath) as jsonFile:
+        jsonSystem = json.load(jsonFile)
+
     isHeatingActivated =    jsonSystem["ISR"][1]["ContactorOn"][0] \
             or jsonSystem["ISR"][1]["ContactorOn"][0] \
             or jsonSystem["ISR"][1]["ContactorOn"][0]
@@ -154,8 +160,6 @@ def logInToCSV(jsonFilePath):
             writer_object.writerow(list_data)  
             # Close the file object
             f_object.close()
-
-
 looper1()
 looper2()
-    
+ 
