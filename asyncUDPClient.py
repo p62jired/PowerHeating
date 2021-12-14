@@ -5,7 +5,7 @@ import asyncio
 import threading
 from csv import writer
 
-filePath = "/home/pi/project/html/logger.json"
+loggerPath = "/home/pi/project/html/logger.json"
 msgFromClient       = "1"
 bytesToSend         = str.encode(msgFromClient)
 bufferSize          = 1024
@@ -26,11 +26,10 @@ jsonFilePath = "/var/lib/docker/volumes/iot-stack-tutorial_noderedData/_data/bin
 # Create a UDP socket at client side
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM) 
 UDPClientSocket.settimeout(0.5)
-# dataFromFile = json.load(open(filePath, 'r'))
+# dataFromFile = json.load(open(loggerPath, 'r'))
 # print(type(dataFromFile))  
-with open(filePath, 'r') as f:
+with open(loggerPath, 'r') as f:
     dataFromFile = json.load(f)
-    print(dataFromFile)
 
 def writeJSONFile(path, data):
     with open(path, 'w') as file:
@@ -65,10 +64,10 @@ async def logger1(serverAddressPort):
         listOfTemps = wordListToTempList(bytesListToWordsList(data))
         print(listOfTemps)
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, listOfTemps)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
     except socket.timeout:
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, errorTempList)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
 
 async def logger2(serverAddressPort):
@@ -80,10 +79,10 @@ async def logger2(serverAddressPort):
         listOfTemps = wordListToTempList(bytesListToWordsList(data))
         print(listOfTemps)
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, listOfTemps)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
     except socket.timeout:
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, errorTempList)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
 
 async def logger3(serverAddressPort):
@@ -95,10 +94,10 @@ async def logger3(serverAddressPort):
         listOfTemps = wordListToTempList(bytesListToWordsList(data))
         print(listOfTemps)
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, listOfTemps)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
     except socket.timeout:
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, errorTempList)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")
 
 async def logger4(serverAddressPort):
@@ -110,10 +109,10 @@ async def logger4(serverAddressPort):
         listOfTemps = wordListToTempList(bytesListToWordsList(data))
         print(listOfTemps)
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, listOfTemps)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
     except socket.timeout:
         dataToWritte = listOfTempsToJSONFile(index, dataFromFile, errorTempList)
-        writeJSONFile(filePath, dataToWritte)
+        writeJSONFile(loggerPath, dataToWritte)
         print("timeout from " + serverAddressPort[0]+ "!!")        
 
 
@@ -130,7 +129,7 @@ def looper1():
 
 def looper2():    
     # i as interval in seconds    
-    threading.Timer(loggerIntervalInSec, looper2).start()    
+    threading.Timer(10, looper2).start()    
     # put your action here
     print("in looper 2")
     asyncio.run(logInToCSV(jsonFilePath))
@@ -145,14 +144,25 @@ async def logInToCSV(jsonFilePath):
             or jsonSystem["ISR"][1]["ContactorOn"][0] \
             or jsonSystem["ISR"][1]["ContactorOn"][0]
 
+    with open(loggerPath, 'r') as f:
+        d = json.load(f)        
     # The data assigned to the list 
     list_data=[time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),jsonSystem["Lufttemperatur"]\
                 ,jsonSystem["RelativeFeucht"]\
                 ,jsonSystem["Windgeschwindigkeit"],jsonSystem["Niederschlagsmenge"]\
                 ,jsonSystem["Niederschlagsart"],jsonSystem["UV-Index"]]
+    #list_data.append(d["1"][0])
+    for i in range(0, len(d["1"])):            
+        list_data.append(d["1"][i])
 
-    if   isHeatingActivated:      
-        with open('logs/logger.csv', 'a', newline='') as f_object:  
+    for i in range(0, len(d["2"])):            
+        list_data.append(d["2"][i])
+
+    for i in range(0, len(d["3"])):            
+        list_data.append(d["3"][i])
+
+    if   isHeatingActivated == 1:      
+        with open('/home/pi/project/logs/logger.csv', 'a', newline='') as f_object:  
             # Pass the CSV  file object to the writer() function
             writer_object = writer(f_object)
             # Result - a writer object
