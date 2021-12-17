@@ -13,10 +13,10 @@ errorTempList = ["n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/
 "n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a",]
 sensorError = 1372.0
 
-server_1_AddressPort = ("192.168.0.100", 2001)
-server_2_AddressPort = ("192.168.0.101", 2001)
-server_3_AddressPort = ("192.168.0.102", 2001)
-server_4_AddressPort = ("192.168.0.103", 2001)
+server_1_AddressPort = ("192.168.250.103", 2001)
+server_2_AddressPort = ("192.168.250.104", 2001)
+server_3_AddressPort = ("192.168.250.105", 2001)
+server_4_AddressPort = ("192.168.250.106", 2001)
 
 
 loggerIntervalInSec = 10

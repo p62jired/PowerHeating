@@ -15,9 +15,13 @@ async function asyncCall() {
     writeToLogger2_HTML();
     writeToLogger3_HTML();
     writeToLogger4_HTML();
+    document.getElementById("table").style.visibility = "visible"
+    document.getElementById("HeaderText").innerHTML = "Datenlogger";
   } 
   catch (error){
     console.log(error);
+    document.getElementById("table").style.visibility = "hidden"
+    document.getElementById("HeaderText").innerHTML = "Not connection";
   }
 }
 function setOpenWireStyle(strIndxLog, i) {
